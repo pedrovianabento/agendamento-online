@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Barbearia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:wght@300;400;600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8D48B;
+  --dark: #0D0D0D;
+  --dark-card: #161616;
+  --dark-surface: #1C1C1C;
+  --dark-border: #2A2A2A;
+  --text: #F0EDE6;
+  --text-muted: #8A8578;
+  --danger: #C45B5B;
+  --success: #5BC47A;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--dark);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* === GRAIN OVERLAY === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--dark); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+
+/* === NAV === */
+nav {
+  position: fixed; top:0; left:0; right:0;
+  padding: 1rem 2rem;
+  display: flex; justify-content: space-between; align-items: center;
+  z-index: 100;
+  background: rgba(13,13,13,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--dark-border);
+  transition: transform 0.3s;
+}
+
+nav .logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: 3px;
+  color: var(--gold);
+}
+
+nav .nav-links { display: flex; gap: 1.5rem; }
+nav .nav-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+nav .nav-links a:hover { color: var(--gold); }
+
+.hamburger { display:none; cursor:pointer; font-size:1.4rem; color:var(--gold); }
+
+/* === HERO === */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 30%, rgba(201,168,76,0.08) 0%, transparent 70%);
+}
+
+.hero-badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  padding: 0.4rem 1.2rem;
+  margin-bottom: 2rem;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s forwards;
+}
+
+.hero h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3.5rem, 12vw, 9rem);
+  letter-spacing: 6px;
+  line-height: 0.95;
+  color: var(--text);
+  opacity: 0;
+  animation: fadeUp 0.8s 0.4s forwards;
+}
+
+.hero h1 span { color: var(--gold); }
+
+.hero-subtitle {
+  font-family: 'Crimson Pro', serif;
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  font-weight: 300;
+  color: var(--text-muted);
+  margin-top: 1rem;
+  font-style: italic;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.6s forwards;
+}
+
+.hero-cta {
+  margin-top: 2.5rem;
+  display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.8s forwards;
+}
+
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.9rem 2rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-primary {
+  background: var(--gold);
+  color: var(--dark);
+}
+.btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
+
+.btn-outline {
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+}
+.btn-outline:hover { background: var(--gold); color: var(--dark); }
+
+.scroll-indicator {
+  position: absolute; bottom: 2rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  animation: float 2s infinite;
+}
+
+/* === SECTIONS === */
+section { padding: 5rem 2rem; }
+
+.section-label {
+  font-size: 0.7rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+}
+
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: 3px;
+  margin-bottom: 1rem;
+}
+
+.section-divider {
+  width: 60px; height: 2px;
+  background: var(--gold);
+  margin-bottom: 3rem;
+}
+
+/* === SERVICES === */
+#servicos { max-width: 900px; margin: 0 auto; }
+
+.services-grid { display: flex; flex-direction: column; gap: 1px; }
+
+.service-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--dark-border);
+  transition: all 0.3s;
+  cursor: default;
+}
+
+.service-item:hover { padding-left: 1rem; border-color: var(--gold); }
+
+.service-name {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+}
+
+.service-duration {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+.service-price {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+
+/* === BOOKING === */
+#agendar {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.booking-step {
+  display: none;
+  animation: fadeIn 0.4s;
+}
+.booking-step.active { display: block; }
+
+.step-indicator {
+  display: flex; gap: 0.5rem; margin-bottom: 2rem;
+}
+
+.step-dot {
+  width: 40px; height: 3px;
+  background: var(--dark-border);
+  border-radius: 2px;
+  transition: background 0.3s;
+}
+.step-dot.active { background: var(--gold); }
+
+/* Service Selection */
+.service-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 1.5rem;
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.service-option:hover, .service-option.selected {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.05);
+}
+.service-option.selected::after {
+  content: '\f00c';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  color: var(--gold);
+}
+
+/* Calendar */
+.calendar {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  padding: 1.5rem;
+}
+
+.cal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.cal-header h3 {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.cal-nav {
+  background: none; border: 1px solid var(--dark-border);
+  color: var(--text); width: 36px; height: 36px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s;
+}
+.cal-nav:hover { border-color: var(--gold); color: var(--gold); }
+
+.cal-weekdays {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  text-align: center; margin-bottom: 0.5rem;
+}
+.cal-weekdays span {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 0.5rem 0;
+}
+
+.cal-days {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.cal-day:hover:not(.disabled):not(.empty) { border-color: var(--gold); }
+.cal-day.selected { background: var(--gold); color: var(--dark); font-weight: 700; }
+.cal-day.disabled { color: var(--dark-border); cursor: default; }
+.cal-day.empty { cursor: default; }
+.cal-day.today { border-color: var(--gold); opacity:0.6; }
+
+/* Time Slots */
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.time-slot {
+  padding: 0.8rem;
+  text-align: center;
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.time-slot:hover:not(.taken) { border-color: var(--gold); }
+.time-slot.selected { background: var(--gold); color: var(--dark); font-weight: 700; border-color: var(--gold); }
+.time-slot.taken { opacity: 0.3; cursor: default; text-decoration: line-through; }
+
+/* Form */
+.form-group { margin-bottom: 1.2rem; }
+.form-group label {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+.form-group input {
+  width: 100%;
+  padding: 1rem;
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  transition: border 0.3s;
+}
+.form-group input:focus { outline:none; border-color: var(--gold); }
+
+.booking-summary {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-row {
+  display: flex; justify-content: space-between;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.summary-row span:first-child { color: var(--text-muted); }
+
+.booking-actions {
+  display: flex; gap: 1rem; margin-top: 1.5rem;
+}
+.booking-actions .btn { flex:1; justify-content: center; }
+
+/* Confirmation */
+.confirmation {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.confirmation i {
+  font-size: 3rem;
+  color: var(--gold);
+  margin-bottom: 1rem;
+}
+
+.confirmation h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 2px;
+  margin-bottom: 0.5rem;
+}
+
+/* === CONTACT === */
+#contato { max-width: 700px; margin: 0 auto; }
+
+.contact-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+}
+
+.contact-card {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  padding: 1.5rem;
+  display: flex; align-items: flex-start; gap: 1rem;
+  transition: border 0.3s;
+}
+.contact-card:hover { border-color: var(--gold); }
+
+.contact-card i { color: var(--gold); font-size: 1.2rem; margin-top: 0.2rem; }
+.contact-card h4 { font-size: 0.85rem; margin-bottom: 0.3rem; }
+.contact-card p { font-size: 0.85rem; color: var(--text-muted); }
+
+/* === FOOTER === */
+footer {
+  text-align: center;
+  padding: 2rem 2rem 5rem;
+  border-top: 1px solid var(--dark-border);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.admin-login-bar {
+  background: var(--dark-card);
+  border-top: 1px solid var(--dark-border);
+  padding: 0.8rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 90;
+}
+
+.admin-login-bar input {
+  padding: 0.6rem 1rem;
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  width: 160px;
+  transition: border 0.3s;
+}
+.admin-login-bar input:focus { outline:none; border-color: var(--gold); }
+.admin-login-bar input::placeholder { color: var(--text-muted); }
+
+.admin-login-bar button {
+  padding: 0.6rem 1.2rem;
+  background: var(--gold);
+  border: none;
+  color: var(--dark);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 0.4rem;
+  transition: background 0.3s;
+}
+.admin-login-bar button:hover { background: var(--gold-light); }
+
+.admin-login-bar .login-error {
+  color: var(--danger);
+  font-size: 0.75rem;
+  display: none;
+}
+
+/* === WHATSAPP FLOAT === */
+.whatsapp-float {
+  position: fixed;
+  bottom: 2rem; right: 2rem;
+  width: 56px; height: 56px;
+  background: #25D366;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.6rem;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(37,211,102,0.3);
+  transition: transform 0.3s;
+  text-decoration: none;
+}
+.whatsapp-float:hover { transform: scale(1.1); }
+
+/* === ADMIN PANEL === */
+.admin-panel {
+  display: none;
+  position: fixed; inset:0;
+  background: rgba(0,0,0,0.9);
+  z-index: 200;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.admin-panel.show { display: block; }
+
+.admin-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.admin-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 2rem;
+}
+
+.admin-header h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 3px;
+  color: var(--gold);
+}
+
+.admin-close {
+  background: none; border: 1px solid var(--dark-border);
+  color: var(--text); width: 40px; height: 40px;
+  cursor: pointer; font-size: 1.2rem;
+  transition: all 0.3s;
+}
+.admin-close:hover { border-color: var(--gold); color: var(--gold); }
+
+.admin-booking {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 0.5rem;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 0.5rem;
+}
+
+.admin-booking-info { flex: 1; }
+.admin-booking-info strong { color: var(--gold); }
+.admin-booking-info small { color: var(--text-muted); display: block; margin-top: 0.3rem; }
+
+.admin-delete {
+  background: none; border: 1px solid var(--danger);
+  color: var(--danger); padding: 0.4rem 0.8rem;
+  font-size: 0.75rem; cursor: pointer;
+  text-transform: uppercase; letter-spacing: 1px;
+  transition: all 0.3s;
+}
+.admin-delete:hover { background: var(--danger); color: #fff; }
+
+.admin-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+}
+
+.admin-filter {
+  display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+
+.admin-filter-btn {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  color: var(--text-muted);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s;
+}
+.admin-filter-btn.active, .admin-filter-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* === SETTINGS PANEL === */
+.settings-panel {
+  display: none;
+  position: fixed; inset:0;
+  background: rgba(0,0,0,0.95);
+  z-index: 200;
+  overflow-y: auto;
+  padding: 2rem;
+}
+.settings-panel.show { display: block; }
+
+.settings-content {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.settings-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--dark-border);
+}
+
+.settings-header h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 3px;
+  color: var(--gold);
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--dark-border);
+  overflow-x: auto;
+}
+
+.settings-tab {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 0.8rem 1.2rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.settings-tab:hover { color: var(--text); }
+.settings-tab.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.settings-tab-content { display: none; animation: fadeIn 0.3s; }
+.settings-tab-content.active { display: block; }
+
+.settings-group {
+  margin-bottom: 1.5rem;
+}
+
+.settings-group-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--gold);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--dark-border);
+}
+
+.settings-field { margin-bottom: 1rem; }
+.settings-field label {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+.settings-field input,
+.settings-field select,
+.settings-field textarea {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  transition: border 0.3s;
+}
+.settings-field input:focus,
+.settings-field select:focus,
+.settings-field textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+.settings-field textarea { resize: vertical; min-height: 60px; }
+.settings-field select { cursor: pointer; }
+.settings-field select option { background: var(--dark-card); }
+
+.settings-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.settings-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Service editor */
+.settings-service-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+  margin-bottom: 0.5rem;
+  padding: 1rem;
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  flex-wrap: wrap;
+}
+
+.settings-service-item .settings-field { margin-bottom: 0; flex: 1; min-width: 100px; }
+.settings-service-item .settings-field label { font-size: 0.6rem; }
+.settings-service-item .settings-field input { padding: 0.6rem 0.8rem; font-size: 0.85rem; }
+
+.settings-service-remove {
+  background: none;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  width: 36px; height: 36px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+.settings-service-remove:hover { background: var(--danger); color: #fff; }
+
+.settings-add-btn {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  width: 100%;
+  padding: 0.8rem;
+  background: none;
+  border: 1px dashed var(--dark-border);
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 0.5rem;
+}
+.settings-add-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+/* Days checkboxes */
+.days-grid {
+  display: flex; gap: 0.5rem; flex-wrap: wrap;
+}
+
+.day-checkbox {
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px;
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  user-select: none;
+}
+.day-checkbox.active {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(201,168,76,0.1);
+}
+
+.settings-save-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--dark);
+  border-top: 1px solid var(--dark-border);
+  padding: 1rem 0;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+.settings-toast {
+  position: fixed;
+  bottom: 2rem; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--gold);
+  color: var(--dark);
+  padding: 0.8rem 2rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  z-index: 300;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.settings-toast.show { transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 768px) {
+  .settings-row, .settings-row-3 { grid-template-columns: 1fr; }
+  .settings-service-item { flex-direction: column; align-items: stretch; }
+  .settings-service-remove { width: 100%; height: auto; padding: 0.5rem; }
+  .settings-tabs { gap: 0; }
+  .settings-tab { padding: 0.6rem 0.8rem; font-size: 0.7rem; }
+}
+
+/* === MOBILE NAV === */
+.mobile-menu {
+  display: none;
+  position: fixed; inset:0;
+  background: rgba(13,13,13,0.97);
+  z-index: 150;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2rem;
+}
+.mobile-menu.show { display: flex; }
+.mobile-menu a {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: 4px;
+  transition: color 0.3s;
+}
+.mobile-menu a:hover { color: var(--gold); }
+
+/* === ANIMATIONS === */
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(20px); }
+  to { opacity:1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity:0; }
+  to { opacity:1; }
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.visible {
+  opacity: 1; transform: translateY(0);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  nav .nav-links { display: none; }
+  .hamburger { display: block; }
+  .contact-grid { grid-template-columns: 1fr; }
+  section { padding: 3rem 1.5rem; }
+  .time-slots { grid-template-columns: repeat(3, 1fr); }
+  .booking-actions { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================ -->
+<!-- CONFIGURAÇÃO DA BARBEARIA - EDITE AQUI -->
+<!-- ============================================ -->
+<script>
+const DEFAULT_CONFIG = {
+  nomeBarbearia: "Barbearia Premium",
+  nomeBarbeiro: "João Silva",
+  slogan: "Estilo e precisão em cada corte",
+  telefone: "(11) 99999-9999",
+  whatsapp: "5511999999999",
+  email: "contato@barbearia.com",
+  endereco: "Rua Exemplo, 123 - Centro",
+  cidade: "São Paulo - SP",
+  instagram: "https://instagram.com/suabarbearia",
+  diasFuncionamento: [1, 2, 3, 4, 5, 6],
+  horaInicio: 9,
+  horaFim: 20,
+  intervaloMinutos: 30,
+  almocoInicio: 12,
+  almocoFim: 13,
+  servicos: [
+    { nome: "Corte Masculino",    preco: 45, duracao: "30 min" },
+    { nome: "Barba",              preco: 35, duracao: "30 min" },
+    { nome: "Corte + Barba",      preco: 70, duracao: "60 min" },
+    { nome: "Corte Infantil",     preco: 35, duracao: "30 min" },
+    { nome: "Sobrancelha",        preco: 15, duracao: "15 min" },
+    { nome: "Hidratação Capilar", preco: 50, duracao: "40 min" },
+  ],
+  senhaAdmin: "1234",
+};
+
+// Load saved config from localStorage, fallback to defaults
+function loadConfig() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('barbershop_config'));
+    if (saved) return { ...DEFAULT_CONFIG, ...saved };
+  } catch(e) {}
+  return { ...DEFAULT_CONFIG };
+}
+
+const CONFIG = loadConfig();
+</script>
+
+<nav>
+  <div class="logo" id="navLogo"></div>
+  <div class="nav-links">
+    <a href="#servicos">Serviços</a>
+    <a href="#agendar">Agendar</a>
+    <a href="#contato">Contato</a>
+  </div>
+  <div class="hamburger" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></div>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#servicos" onclick="toggleMobileMenu()">Serviços</a>
+  <a href="#agendar" onclick="toggleMobileMenu()">Agendar</a>
+  <a href="#contato" onclick="toggleMobileMenu()">Contato</a>
+</div>
+
+<section class="hero">
+  <div class="hero-badge" id="heroBadge"></div>
+  <h1 id="heroTitle"></h1>
+  <p class="hero-subtitle" id="heroSubtitle"></p>
+  <div class="hero-cta">
+    <a href="#agendar" class="btn btn-primary"><i class="fas fa-calendar-check"></i> Agendar Horário</a>
+    <a href="#servicos" class="btn btn-outline">Ver Serviços</a>
+  </div>
+  <div class="scroll-indicator">
+    <span>Role para baixo</span>
+    <i class="fas fa-chevron-down"></i>
+  </div>
+</section>
+
+<section id="servicos" class="reveal">
+  <div class="section-label">O que oferecemos</div>
+  <h2 class="section-title">Nossos Serviços</h2>
+  <div class="section-divider"></div>
+  <div class="services-grid" id="servicesList"></div>
+</section>
+
+<section id="agendar" class="reveal">
+  <div class="section-label">Marque seu horário</div>
+  <h2 class="section-title">Agendamento Online</h2>
+  <div class="section-divider"></div>
+
+  <div class="step-indicator" id="stepIndicator"></div>
+
+  <!-- Step 1: Escolher serviço -->
+  <div class="booking-step active" id="step1">
+    <h3 style="font-family:'Crimson Pro',serif;font-weight:300;margin-bottom:1rem;">Escolha o serviço</h3>
+    <div id="serviceOptions"></div>
+    <div class="booking-actions">
+      <button class="btn btn-primary" onclick="nextStep(2)" style="margin-top:1rem;">Próximo <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- Step 2: Escolher data e horário -->
+  <div class="booking-step" id="step2">
+    <h3 style="font-family:'Crimson Pro',serif;font-weight:300;margin-bottom:1rem;">Escolha a data e horário</h3>
+    <div class="calendar">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+        <h3 id="calMonth"></h3>
+        <button class="cal-nav" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+      </div>
+      <div class="cal-weekdays">
+        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+      </div>
+      <div class="cal-days" id="calDays"></div>
+    </div>
+    <div id="timeSlotsContainer" style="display:none;">
+      <h4 style="font-family:'Crimson Pro',serif;font-weight:300;margin:1.5rem 0 0.8rem;">Horários disponíveis</h4>
+      <div class="time-slots" id="timeSlots"></div>
+    </div>
+    <div class="booking-actions">
+      <button class="btn btn-outline" onclick="prevStep(1)"><i class="fas fa-arrow-left"></i> Voltar</button>
+      <button class="btn btn-primary" onclick="nextStep(3)">Próximo <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- Step 3: Dados do cliente -->
+  <div class="booking-step" id="step3">
+    <h3 style="font-family:'Crimson Pro',serif;font-weight:300;margin-bottom:1rem;">Seus dados</h3>
+    <div class="booking-summary" id="bookingSummary"></div>
+    <div class="form-group">
+      <label>Seu nome</label>
+      <input type="text" id="clientName" placeholder="Digite seu nome">
+    </div>
+    <div class="form-group">
+      <label>Seu telefone</label>
+      <input type="tel" id="clientPhone" placeholder="(11) 99999-9999">
+    </div>
+    <div class="booking-actions">
+      <button class="btn btn-outline" onclick="prevStep(2)"><i class="fas fa-arrow-left"></i> Voltar</button>
+      <button class="btn btn-primary" onclick="confirmBooking()"><i class="fas fa-check"></i> Confirmar</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Confirmação -->
+  <div class="booking-step" id="step4">
+    <div class="confirmation">
+      <i class="fas fa-check-circle"></i>
+      <h3>Agendamento Confirmado!</h3>
+      <p style="color:var(--text-muted);margin-bottom:1rem;" id="confirmationMsg"></p>
+      <div class="booking-summary" id="confirmSummary"></div>
+      <div style="margin-top:1.5rem; display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+        <a id="whatsappConfirm" class="btn btn-primary" target="_blank"><i class="fab fa-whatsapp"></i> Confirmar via WhatsApp</a>
+        <button class="btn btn-outline" onclick="resetBooking()"><i class="fas fa-calendar-plus"></i> Novo Agendamento</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contato" class="reveal">
+  <div class="section-label">Fale conosco</div>
+  <h2 class="section-title">Contato</h2>
+  <div class="section-divider"></div>
+  <div class="contact-grid" id="contactGrid"></div>
+</section>
+
+<footer id="footer"></footer>
+
+<div class="admin-login-bar" id="adminLoginBar">
+  <i class="fas fa-lock" style="color:var(--text-muted);font-size:0.85rem;"></i>
+  <input type="password" id="adminPwdInput" placeholder="Senha do barbeiro" onkeydown="if(event.key==='Enter')loginAdmin()">
+  <button onclick="loginAdmin()"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+  <span class="login-error" id="loginError">Senha incorreta</span>
+</div>
+
+<a class="whatsapp-float" id="whatsappFloat" target="_blank" title="Fale pelo WhatsApp">
+  <i class="fab fa-whatsapp"></i>
+</a>
+
+<div class="admin-panel" id="adminPanel">
+  <div class="admin-content">
+    <div class="admin-header">
+      <h2><i class="fas fa-lock" style="margin-right:0.5rem;"></i> Painel do Barbeiro</h2>
+      <div style="display:flex;gap:0.5rem;">
+        <button class="admin-close" onclick="openSettings()" title="Configurações" style="color:var(--gold);border-color:var(--gold);"><i class="fas fa-cog"></i></button>
+        <button class="admin-close" onclick="closeAdmin()"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+    <div class="admin-filter" id="adminFilter"></div>
+    <div id="adminBookings"></div>
+  </div>
+</div>
+
+<!-- SETTINGS PANEL -->
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-content">
+    <div class="settings-header">
+      <h2><i class="fas fa-cog" style="margin-right:0.5rem;"></i> Configurações</h2>
+      <button class="admin-close" onclick="closeSettings()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="settings-tabs">
+      <button class="settings-tab active" onclick="switchSettingsTab('geral',this)">Geral</button>
+      <button class="settings-tab" onclick="switchSettingsTab('contato',this)">Contato</button>
+      <button class="settings-tab" onclick="switchSettingsTab('servicos',this)">Serviços</button>
+      <button class="settings-tab" onclick="switchSettingsTab('horarios',this)">Horários</button>
+      <button class="settings-tab" onclick="switchSettingsTab('seguranca',this)">Segurança</button>
+    </div>
+
+    <!-- Tab: Geral -->
+    <div class="settings-tab-content active" id="tab-geral">
+      <div class="settings-group">
+        <div class="settings-field">
+          <label>Nome da Barbearia</label>
+          <input type="text" id="set_nomeBarbearia">
+        </div>
+        <div class="settings-field">
+          <label>Nome do Barbeiro</label>
+          <input type="text" id="set_nomeBarbeiro">
+        </div>
+        <div class="settings-field">
+          <label>Slogan</label>
+          <input type="text" id="set_slogan">
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Contato -->
+    <div class="settings-tab-content" id="tab-contato">
+      <div class="settings-group">
+        <div class="settings-row">
+          <div class="settings-field">
+            <label>Telefone</label>
+            <input type="text" id="set_telefone">
+          </div>
+          <div class="settings-field">
+            <label>WhatsApp (só números)</label>
+            <input type="text" id="set_whatsapp" placeholder="5511999999999">
+          </div>
+        </div>
+        <div class="settings-field">
+          <label>E-mail</label>
+          <input type="email" id="set_email">
+        </div>
+        <div class="settings-row">
+          <div class="settings-field">
+            <label>Endereço</label>
+            <input type="text" id="set_endereco">
+          </div>
+          <div class="settings-field">
+            <label>Cidade / Estado</label>
+            <input type="text" id="set_cidade">
+          </div>
+        </div>
+        <div class="settings-field">
+          <label>Instagram (URL)</label>
+          <input type="url" id="set_instagram" placeholder="https://instagram.com/...">
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Serviços -->
+    <div class="settings-tab-content" id="tab-servicos">
+      <div class="settings-group">
+        <div id="settingsServicesList"></div>
+        <button class="settings-add-btn" onclick="addServiceField()">
+          <i class="fas fa-plus"></i> Adicionar Serviço
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab: Horários -->
+    <div class="settings-tab-content" id="tab-horarios">
+      <div class="settings-group">
+        <div class="settings-field">
+          <label>Dias de Funcionamento</label>
+          <div class="days-grid" id="settingsDays">
+            <div class="day-checkbox" data-day="0" onclick="toggleDay(this)">Dom</div>
+            <div class="day-checkbox" data-day="1" onclick="toggleDay(this)">Seg</div>
+            <div class="day-checkbox" data-day="2" onclick="toggleDay(this)">Ter</div>
+            <div class="day-checkbox" data-day="3" onclick="toggleDay(this)">Qua</div>
+            <div class="day-checkbox" data-day="4" onclick="toggleDay(this)">Qui</div>
+            <div class="day-checkbox" data-day="5" onclick="toggleDay(this)">Sex</div>
+            <div class="day-checkbox" data-day="6" onclick="toggleDay(this)">Sáb</div>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-field">
+            <label>Hora de Início</label>
+            <select id="set_horaInicio"></select>
+          </div>
+          <div class="settings-field">
+            <label>Hora de Fim</label>
+            <select id="set_horaFim"></select>
+          </div>
+        </div>
+        <div class="settings-field">
+          <label>Intervalo entre Horários</label>
+          <select id="set_intervaloMinutos">
+            <option value="15">15 minutos</option>
+            <option value="30">30 minutos</option>
+            <option value="45">45 minutos</option>
+            <option value="60">60 minutos</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <div class="settings-field">
+            <label>Início do Almoço (vazio = sem pausa)</label>
+            <select id="set_almocoInicio"><option value="">Sem pausa</option></select>
+          </div>
+          <div class="settings-field">
+            <label>Fim do Almoço</label>
+            <select id="set_almocoFim"><option value="">Sem pausa</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Segurança -->
+    <div class="settings-tab-content" id="tab-seguranca">
+      <div class="settings-group">
+        <div class="settings-field">
+          <label>Senha do Admin</label>
+          <input type="password" id="set_senhaAdmin">
+        </div>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:-0.5rem;">Essa senha é pedida ao acessar o painel de agendamentos e configurações.</p>
+      </div>
+    </div>
+
+    <div class="settings-save-bar">
+      <button class="btn btn-outline" onclick="closeSettings()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="settings-toast" id="settingsToast">Configurações salvas!</div>
+
+<script>
+// ==========================================
+// APP
+// ==========================================
+
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+let state = {
+  selectedService: null,
+  selectedDate: null,
+  selectedTime: null,
+  currentMonth: new Date().getMonth(),
+  currentYear: new Date().getFullYear(),
+  currentStep: 1,
+};
+
+// --- Init ---
+function init() {
+  document.getElementById('pageTitle').textContent = CONFIG.nomeBarbearia;
+  document.getElementById('navLogo').textContent = CONFIG.nomeBarbearia.toUpperCase();
+  document.getElementById('heroBadge').textContent = CONFIG.nomeBarbeiro;
+
+  // Split name for gold effect on last word
+  const words = CONFIG.nomeBarbearia.split(' ');
+  if (words.length > 1) {
+    const last = words.pop();
+    document.getElementById('heroTitle').innerHTML = words.join(' ') + ' <span>' + last + '</span>';
+  } else {
+    document.getElementById('heroTitle').innerHTML = '<span>' + CONFIG.nomeBarbearia + '</span>';
+  }
+
+  document.getElementById('heroSubtitle').textContent = CONFIG.slogan;
+
+  // Services list
+  const sl = document.getElementById('servicesList');
+  CONFIG.servicos.forEach(s => {
+    sl.innerHTML += `<div class="service-item"><div><div class="service-name">${s.nome}</div><div class="service-duration"><i class="far fa-clock"></i> ${s.duracao}</div></div><div class="service-price">R$ ${s.preco}</div></div>`;
+  });
+
+  // Service options for booking
+  const so = document.getElementById('serviceOptions');
+  CONFIG.servicos.forEach((s, i) => {
+    so.innerHTML += `<div class="service-option" data-index="${i}" onclick="selectService(${i})"><div><strong>${s.nome}</strong><br><small style="color:var(--text-muted)">${s.duracao}</small></div><span style="font-family:'Bebas Neue';font-size:1.3rem;color:var(--gold)">R$ ${s.preco}</span></div>`;
+  });
+
+  // Contact
+  const cg = document.getElementById('contactGrid');
+  cg.innerHTML = `
+    <div class="contact-card"><i class="fas fa-map-marker-alt"></i><div><h4>Endereço</h4><p>${CONFIG.endereco}<br>${CONFIG.cidade}</p></div></div>
+    <div class="contact-card"><i class="fas fa-phone"></i><div><h4>Telefone</h4><p>${CONFIG.telefone}</p></div></div>
+    <div class="contact-card"><i class="fab fa-whatsapp"></i><div><h4>WhatsApp</h4><p>${CONFIG.telefone}</p></div></div>
+    <div class="contact-card" style="cursor:pointer" onclick="window.open('${CONFIG.instagram}')"><i class="fab fa-instagram"></i><div><h4>Instagram</h4><p>Siga-nos</p></div></div>
+  `;
+
+  // Footer
+  document.getElementById('footer').innerHTML = `© ${new Date().getFullYear()} ${CONFIG.nomeBarbearia} — Todos os direitos reservados`;
+
+  // WhatsApp float
+  document.getElementById('whatsappFloat').href = `https://wa.me/${CONFIG.whatsapp}`;
+
+  // Step indicator
+  buildStepIndicator();
+  renderCalendar();
+  setupReveal();
+  setupAdminTrigger();
+
+  // Check hash for admin/settings
+  if (location.hash === '#admin') {
+    document.getElementById('adminPwdInput').focus();
+  }
+  if (location.hash === '#configuracoes' || location.hash === '#settings') {
+    document.getElementById('adminPwdInput').focus();
+  }
+}
+
+// --- Step Navigation ---
+function buildStepIndicator() {
+  const si = document.getElementById('stepIndicator');
+  si.innerHTML = '';
+  for (let i = 1; i <= 4; i++) {
+    si.innerHTML += `<div class="step-dot ${i <= state.currentStep ? 'active' : ''}"></div>`;
+  }
+}
+
+function showStep(n) {
+  document.querySelectorAll('.booking-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+  state.currentStep = n;
+  buildStepIndicator();
+}
+
+function nextStep(n) {
+  if (n === 2 && state.selectedService === null) {
+    alert('Por favor, escolha um serviço.');
+    return;
+  }
+  if (n === 3) {
+    if (!state.selectedDate) { alert('Por favor, escolha uma data.'); return; }
+    if (!state.selectedTime) { alert('Por favor, escolha um horário.'); return; }
+    buildSummary();
+  }
+  showStep(n);
+}
+
+function prevStep(n) { showStep(n); }
+
+// --- Service Selection ---
+function selectService(i) {
+  state.selectedService = i;
+  document.querySelectorAll('.service-option').forEach(el => el.classList.remove('selected'));
+  document.querySelector(`.service-option[data-index="${i}"]`).classList.add('selected');
+}
+
+// --- Calendar ---
+function renderCalendar() {
+  const m = state.currentMonth, y = state.currentYear;
+  document.getElementById('calMonth').textContent = MONTHS[m] + ' ' + y;
+
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  let html = '';
+  for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(y, m, d);
+    const dayOfWeek = date.getDay();
+    const isPast = date < today;
+    const isWorkday = CONFIG.diasFuncionamento.includes(dayOfWeek);
+    const isToday = date.getTime() === today.getTime();
+    const isSelected = state.selectedDate && date.getTime() === state.selectedDate.getTime();
+
+    let cls = 'cal-day';
+    if (isPast || !isWorkday) cls += ' disabled';
+    if (isToday) cls += ' today';
+    if (isSelected) cls += ' selected';
+
+    if (!isPast && isWorkday) {
+      html += `<div class="${cls}" onclick="selectDate(${y},${m},${d})">${d}</div>`;
+    } else {
+      html += `<div class="${cls}">${d}</div>`;
+    }
+  }
+
+  document.getElementById('calDays').innerHTML = html;
+}
+
+function changeMonth(dir) {
+  state.currentMonth += dir;
+  if (state.currentMonth > 11) { state.currentMonth = 0; state.currentYear++; }
+  if (state.currentMonth < 0) { state.currentMonth = 11; state.currentYear--; }
+  renderCalendar();
+}
+
+function selectDate(y, m, d) {
+  state.selectedDate = new Date(y, m, d);
+  state.selectedTime = null;
+  renderCalendar();
+  renderTimeSlots();
+}
+
+// --- Time Slots ---
+function renderTimeSlots() {
+  if (!state.selectedDate) return;
+
+  const container = document.getElementById('timeSlotsContainer');
+  const slotsEl = document.getElementById('timeSlots');
+  container.style.display = 'block';
+
+  const bookings = getBookings();
+  const dateStr = formatDate(state.selectedDate);
+  const bookedTimes = bookings.filter(b => b.date === dateStr).map(b => b.time);
+
+  let html = '';
+  for (let h = CONFIG.horaInicio; h < CONFIG.horaFim; h++) {
+    for (let m = 0; m < 60; m += CONFIG.intervaloMinutos) {
+      // Skip lunch
+      if (CONFIG.almocoInicio !== null && h >= CONFIG.almocoInicio && h < CONFIG.almocoFim) continue;
+
+      const timeStr = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+      const isTaken = bookedTimes.includes(timeStr);
+      const isSelected = state.selectedTime === timeStr;
+
+      // Skip past times for today
+      const now = new Date();
+      if (state.selectedDate.toDateString() === now.toDateString()) {
+        if (h < now.getHours() || (h === now.getHours() && m <= now.getMinutes())) continue;
+      }
+
+      let cls = 'time-slot';
+      if (isTaken) cls += ' taken';
+      if (isSelected) cls += ' selected';
+
+      if (!isTaken) {
+        html += `<div class="${cls}" onclick="selectTime('${timeStr}')">${timeStr}</div>`;
+      } else {
+        html += `<div class="${cls}">${timeStr}</div>`;
+      }
+    }
+  }
+
+  slotsEl.innerHTML = html || '<p style="color:var(--text-muted);text-align:center;padding:1rem;">Nenhum horário disponível neste dia.</p>';
+}
+
+function selectTime(t) {
+  state.selectedTime = t;
+  renderTimeSlots();
+}
+
+// --- Summary ---
+function buildSummary() {
+  const s = CONFIG.servicos[state.selectedService];
+  const html = `
+    <div class="summary-row"><span>Serviço</span><span>${s.nome}</span></div>
+    <div class="summary-row"><span>Preço</span><span style="color:var(--gold);font-weight:700;">R$ ${s.preco}</span></div>
+    <div class="summary-row"><span>Data</span><span>${formatDateBR(state.selectedDate)}</span></div>
+    <div class="summary-row"><span>Horário</span><span>${state.selectedTime}</span></div>
+  `;
+  document.getElementById('bookingSummary').innerHTML = html;
+}
+
+// --- Confirm ---
+function confirmBooking() {
+  const name = document.getElementById('clientName').value.trim();
+  const phone = document.getElementById('clientPhone').value.trim();
+  if (!name) { alert('Por favor, digite seu nome.'); return; }
+  if (!phone) { alert('Por favor, digite seu telefone.'); return; }
+
+  const s = CONFIG.servicos[state.selectedService];
+  const booking = {
+    id: Date.now(),
+    service: s.nome,
+    price: s.preco,
+    date: formatDate(state.selectedDate),
+    dateBR: formatDateBR(state.selectedDate),
+    time: state.selectedTime,
+    clientName: name,
+    clientPhone: phone,
+    createdAt: new Date().toISOString(),
+  };
+
+  const bookings = getBookings();
+  bookings.push(booking);
+  saveBookings(bookings);
+
+  document.getElementById('confirmationMsg').textContent = `${name}, seu horário está reservado!`;
+  document.getElementById('confirmSummary').innerHTML = `
+    <div class="summary-row"><span>Serviço</span><span>${booking.service}</span></div>
+    <div class="summary-row"><span>Data</span><span>${booking.dateBR}</span></div>
+    <div class="summary-row"><span>Horário</span><span>${booking.time}</span></div>
+    <div class="summary-row"><span>Valor</span><span style="color:var(--gold);font-weight:700;">R$ ${booking.price}</span></div>
+  `;
+
+  // WhatsApp confirmation link
+  const msg = encodeURIComponent(`Olá! Gostaria de confirmar meu agendamento:\n\n📋 *${booking.service}*\n📅 ${booking.dateBR}\n🕐 ${booking.time}\n👤 ${booking.clientName}\n\nObrigado!`);
+  document.getElementById('whatsappConfirm').href = `https://wa.me/${CONFIG.whatsapp}?text=${msg}`;
+
+  showStep(4);
+}
+
+function resetBooking() {
+  state.selectedService = null;
+  state.selectedDate = null;
+  state.selectedTime = null;
+  document.getElementById('clientName').value = '';
+  document.getElementById('clientPhone').value = '';
+  document.querySelectorAll('.service-option').forEach(el => el.classList.remove('selected'));
+  document.getElementById('timeSlotsContainer').style.display = 'none';
+  renderCalendar();
+  showStep(1);
+}
+
+// --- Storage ---
+function getBookings() {
+  try { return JSON.parse(localStorage.getItem('barbershop_bookings') || '[]'); }
+  catch { return []; }
+}
+function saveBookings(b) { localStorage.setItem('barbershop_bookings', JSON.stringify(b)); }
+
+// --- Date Helpers ---
+function formatDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function formatDateBR(d) {
+  return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
+}
+
+// --- Admin ---
+let logoClicks = 0;
+function setupAdminTrigger() {
+  document.getElementById('navLogo').addEventListener('click', () => {
+    logoClicks++;
+    if (logoClicks >= 5) {
+      logoClicks = 0;
+      document.getElementById('adminPwdInput').focus();
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+    setTimeout(() => { logoClicks = 0; }, 2000);
+  });
+}
+
+function openAdmin() {
+  renderAdmin('all');
+  document.getElementById('adminPanel').classList.add('show');
+  document.getElementById('adminLoginBar').style.display = 'none';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAdmin() {
+  document.getElementById('adminPanel').classList.remove('show');
+  document.getElementById('adminLoginBar').style.display = 'flex';
+  document.body.style.overflow = '';
+}
+
+function loginAdmin() {
+  const pwd = document.getElementById('adminPwdInput').value;
+  const errEl = document.getElementById('loginError');
+  if (pwd === CONFIG.senhaAdmin) {
+    errEl.style.display = 'none';
+    document.getElementById('adminPwdInput').value = '';
+    openAdmin();
+  } else {
+    errEl.style.display = 'inline';
+    setTimeout(() => errEl.style.display = 'none', 2000);
+  }
+}
+
+function renderAdmin(filter) {
+  const bookings = getBookings();
+  const today = formatDate(new Date());
+  const tomorrow = formatDate(new Date(Date.now() + 86400000));
+
+  // Filters
+  const filterEl = document.getElementById('adminFilter');
+  filterEl.innerHTML = `
+    <button class="admin-filter-btn ${filter==='all'?'active':''}" onclick="renderAdmin('all')">Todos</button>
+    <button class="admin-filter-btn ${filter==='today'?'active':''}" onclick="renderAdmin('today')">Hoje</button>
+    <button class="admin-filter-btn ${filter==='tomorrow'?'active':''}" onclick="renderAdmin('tomorrow')">Amanhã</button>
+    <button class="admin-filter-btn ${filter==='upcoming'?'active':''}" onclick="renderAdmin('upcoming')">Próximos</button>
+  `;
+
+  let filtered = bookings;
+  if (filter === 'today') filtered = bookings.filter(b => b.date === today);
+  else if (filter === 'tomorrow') filtered = bookings.filter(b => b.date === tomorrow);
+  else if (filter === 'upcoming') filtered = bookings.filter(b => b.date >= today);
+
+  filtered.sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+  const el = document.getElementById('adminBookings');
+  if (filtered.length === 0) {
+    el.innerHTML = '<div class="admin-empty"><i class="fas fa-calendar-xmark" style="font-size:2rem;margin-bottom:1rem;display:block;"></i>Nenhum agendamento encontrado.</div>';
+    return;
+  }
+
+  el.innerHTML = filtered.map(b => `
+    <div class="admin-booking">
+      <div class="admin-booking-info">
+        <strong>${b.clientName}</strong> — ${b.service}
+        <small><i class="far fa-calendar"></i> ${b.dateBR} às ${b.time} &nbsp;|&nbsp; <i class="fas fa-phone"></i> ${b.clientPhone} &nbsp;|&nbsp; R$ ${b.price}</small>
+      </div>
+      <button class="admin-delete" onclick="deleteBooking(${b.id})"><i class="fas fa-trash"></i> Cancelar</button>
+    </div>
+  `).join('');
+}
+
+function deleteBooking(id) {
+  if (!confirm('Cancelar este agendamento?')) return;
+  const bookings = getBookings().filter(b => b.id !== id);
+  saveBookings(bookings);
+  renderAdmin('all');
+}
+
+// --- Mobile Menu ---
+function toggleMobileMenu() {
+  document.getElementById('mobileMenu').classList.toggle('show');
+}
+
+// --- Scroll Reveal ---
+function setupReveal() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+}
+
+// --- Phone mask ---
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  const phoneInput = document.getElementById('clientPhone');
+  phoneInput.addEventListener('input', function(e) {
+    let v = e.target.value.replace(/\D/g, '');
+    if (v.length > 11) v = v.slice(0, 11);
+    if (v.length > 7) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+    else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+    e.target.value = v;
+  });
+});
+
+// ==========================================
+// SETTINGS
+// ==========================================
+
+function switchSettingsTab(tabId, btn) {
+  document.querySelectorAll('.settings-tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  btn.classList.add('active');
+}
+
+function openSettings() {
+  closeAdmin();
+  populateSettingsFields();
+  document.getElementById('settingsPanel').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSettings() {
+  document.getElementById('settingsPanel').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function populateSettingsFields() {
+  // Geral
+  document.getElementById('set_nomeBarbearia').value = CONFIG.nomeBarbearia;
+  document.getElementById('set_nomeBarbeiro').value = CONFIG.nomeBarbeiro;
+  document.getElementById('set_slogan').value = CONFIG.slogan;
+
+  // Contato
+  document.getElementById('set_telefone').value = CONFIG.telefone;
+  document.getElementById('set_whatsapp').value = CONFIG.whatsapp;
+  document.getElementById('set_email').value = CONFIG.email;
+  document.getElementById('set_endereco').value = CONFIG.endereco;
+  document.getElementById('set_cidade').value = CONFIG.cidade;
+  document.getElementById('set_instagram').value = CONFIG.instagram;
+
+  // Segurança
+  document.getElementById('set_senhaAdmin').value = CONFIG.senhaAdmin;
+
+  // Horários - populate selects
+  const horaInicioSel = document.getElementById('set_horaInicio');
+  const horaFimSel = document.getElementById('set_horaFim');
+  const almocoInicioSel = document.getElementById('set_almocoInicio');
+  const almocoFimSel = document.getElementById('set_almocoFim');
+
+  horaInicioSel.innerHTML = '';
+  horaFimSel.innerHTML = '';
+  almocoInicioSel.innerHTML = '<option value="">Sem pausa</option>';
+  almocoFimSel.innerHTML = '<option value="">Sem pausa</option>';
+
+  for (let h = 5; h <= 23; h++) {
+    const label = String(h).padStart(2,'0') + ':00';
+    horaInicioSel.innerHTML += `<option value="${h}" ${h===CONFIG.horaInicio?'selected':''}>${label}</option>`;
+    horaFimSel.innerHTML += `<option value="${h}" ${h===CONFIG.horaFim?'selected':''}>${label}</option>`;
+    almocoInicioSel.innerHTML += `<option value="${h}" ${h===CONFIG.almocoInicio?'selected':''}>${label}</option>`;
+    almocoFimSel.innerHTML += `<option value="${h}" ${h===CONFIG.almocoFim?'selected':''}>${label}</option>`;
+  }
+
+  document.getElementById('set_intervaloMinutos').value = CONFIG.intervaloMinutos;
+
+  // Dias
+  document.querySelectorAll('#settingsDays .day-checkbox').forEach(el => {
+    const day = parseInt(el.dataset.day);
+    if (CONFIG.diasFuncionamento.includes(day)) {
+      el.classList.add('active');
+    } else {
+      el.classList.remove('active');
+    }
+  });
+
+  // Serviços
+  renderSettingsServices();
+}
+
+function renderSettingsServices() {
+  const container = document.getElementById('settingsServicesList');
+  container.innerHTML = '';
+  CONFIG.servicos.forEach((s, i) => {
+    container.innerHTML += `
+      <div class="settings-service-item" data-index="${i}">
+        <div class="settings-field">
+          <label>Nome</label>
+          <input type="text" class="svc-nome" value="${s.nome}">
+        </div>
+        <div class="settings-field" style="max-width:100px;">
+          <label>Preço (R$)</label>
+          <input type="number" class="svc-preco" value="${s.preco}" min="0">
+        </div>
+        <div class="settings-field" style="max-width:110px;">
+          <label>Duração</label>
+          <input type="text" class="svc-duracao" value="${s.duracao}" placeholder="30 min">
+        </div>
+        <button class="settings-service-remove" onclick="removeServiceField(${i})" title="Remover"><i class="fas fa-trash"></i></button>
+      </div>
+    `;
+  });
+}
+
+function addServiceField() {
+  CONFIG.servicos.push({ nome: '', preco: 0, duracao: '30 min' });
+  renderSettingsServices();
+  // Focus the new name field
+  const items = document.querySelectorAll('.settings-service-item');
+  const last = items[items.length - 1];
+  if (last) last.querySelector('.svc-nome').focus();
+}
+
+function removeServiceField(i) {
+  CONFIG.servicos.splice(i, 1);
+  renderSettingsServices();
+}
+
+function toggleDay(el) {
+  el.classList.toggle('active');
+}
+
+function collectServicesFromFields() {
+  const items = document.querySelectorAll('.settings-service-item');
+  const services = [];
+  items.forEach(item => {
+    const nome = item.querySelector('.svc-nome').value.trim();
+    const preco = parseFloat(item.querySelector('.svc-preco').value) || 0;
+    const duracao = item.querySelector('.svc-duracao').value.trim() || '30 min';
+    if (nome) services.push({ nome, preco, duracao });
+  });
+  return services;
+}
+
+function saveSettings() {
+  // Collect all values
+  CONFIG.nomeBarbearia = document.getElementById('set_nomeBarbearia').value.trim() || CONFIG.nomeBarbearia;
+  CONFIG.nomeBarbeiro = document.getElementById('set_nomeBarbeiro').value.trim() || CONFIG.nomeBarbeiro;
+  CONFIG.slogan = document.getElementById('set_slogan').value.trim();
+  CONFIG.telefone = document.getElementById('set_telefone').value.trim();
+  CONFIG.whatsapp = document.getElementById('set_whatsapp').value.trim();
+  CONFIG.email = document.getElementById('set_email').value.trim();
+  CONFIG.endereco = document.getElementById('set_endereco').value.trim();
+  CONFIG.cidade = document.getElementById('set_cidade').value.trim();
+  CONFIG.instagram = document.getElementById('set_instagram').value.trim();
+  CONFIG.senhaAdmin = document.getElementById('set_senhaAdmin').value || '1234';
+
+  CONFIG.horaInicio = parseInt(document.getElementById('set_horaInicio').value);
+  CONFIG.horaFim = parseInt(document.getElementById('set_horaFim').value);
+  CONFIG.intervaloMinutos = parseInt(document.getElementById('set_intervaloMinutos').value);
+
+  const almocoI = document.getElementById('set_almocoInicio').value;
+  const almocoF = document.getElementById('set_almocoFim').value;
+  CONFIG.almocoInicio = almocoI ? parseInt(almocoI) : null;
+  CONFIG.almocoFim = almocoF ? parseInt(almocoF) : null;
+
+  // Days
+  const dias = [];
+  document.querySelectorAll('#settingsDays .day-checkbox.active').forEach(el => {
+    dias.push(parseInt(el.dataset.day));
+  });
+  CONFIG.diasFuncionamento = dias;
+
+  // Services
+  CONFIG.servicos = collectServicesFromFields();
+
+  // Save to localStorage
+  localStorage.setItem('barbershop_config', JSON.stringify(CONFIG));
+
+  // Re-render the entire site
+  rerenderSite();
+
+  // Toast
+  const toast = document.getElementById('settingsToast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+
+  closeSettings();
+}
+
+function rerenderSite() {
+  // Update page title and nav
+  document.getElementById('pageTitle').textContent = CONFIG.nomeBarbearia;
+  document.getElementById('navLogo').textContent = CONFIG.nomeBarbearia.toUpperCase();
+  document.getElementById('heroBadge').textContent = CONFIG.nomeBarbeiro;
+
+  const words = CONFIG.nomeBarbearia.split(' ');
+  if (words.length > 1) {
+    const last = words.pop();
+    document.getElementById('heroTitle').innerHTML = words.join(' ') + ' <span>' + last + '</span>';
+  } else {
+    document.getElementById('heroTitle').innerHTML = '<span>' + CONFIG.nomeBarbearia + '</span>';
+  }
+
+  document.getElementById('heroSubtitle').textContent = CONFIG.slogan;
+
+  // Services
+  const sl = document.getElementById('servicesList');
+  sl.innerHTML = '';
+  CONFIG.servicos.forEach(s => {
+    sl.innerHTML += `<div class="service-item"><div><div class="service-name">${s.nome}</div><div class="service-duration"><i class="far fa-clock"></i> ${s.duracao}</div></div><div class="service-price">R$ ${s.preco}</div></div>`;
+  });
+
+  // Service options for booking
+  const so = document.getElementById('serviceOptions');
+  so.innerHTML = '';
+  CONFIG.servicos.forEach((s, i) => {
+    so.innerHTML += `<div class="service-option" data-index="${i}" onclick="selectService(${i})"><div><strong>${s.nome}</strong><br><small style="color:var(--text-muted)">${s.duracao}</small></div><span style="font-family:'Bebas Neue';font-size:1.3rem;color:var(--gold)">R$ ${s.preco}</span></div>`;
+  });
+
+  // Contact
+  const cg = document.getElementById('contactGrid');
+  cg.innerHTML = `
+    <div class="contact-card"><i class="fas fa-map-marker-alt"></i><div><h4>Endereço</h4><p>${CONFIG.endereco}<br>${CONFIG.cidade}</p></div></div>
+    <div class="contact-card"><i class="fas fa-phone"></i><div><h4>Telefone</h4><p>${CONFIG.telefone}</p></div></div>
+    <div class="contact-card"><i class="fab fa-whatsapp"></i><div><h4>WhatsApp</h4><p>${CONFIG.telefone}</p></div></div>
+    <div class="contact-card" style="cursor:pointer" onclick="window.open('${CONFIG.instagram}')"><i class="fab fa-instagram"></i><div><h4>Instagram</h4><p>Siga-nos</p></div></div>
+  `;
+
+  // Footer
+  document.getElementById('footer').innerHTML = `© ${new Date().getFullYear()} ${CONFIG.nomeBarbearia} — Todos os direitos reservados`;
+
+  // WhatsApp
+  document.getElementById('whatsappFloat').href = `https://wa.me/${CONFIG.whatsapp}`;
+
+  // Reset booking state
+  resetBooking();
+}
+</script>
+</body>
+</html>
