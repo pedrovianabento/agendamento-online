@@ -875,6 +875,121 @@ footer {
   section { padding: 3rem 1.5rem; }
   .time-slots { grid-template-columns: repeat(3, 1fr); }
   .booking-actions { flex-direction: column; }
+  .modelos-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* === MODELOS / PORTFOLIO === */
+.modelos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.modelo-card {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid var(--dark-border);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.modelo-card:hover {
+  border-color: var(--gold);
+  transform: scale(1.02);
+}
+.modelo-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+.modelo-card:hover img { transform: scale(1.1); }
+.modelo-card .modelo-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  padding: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.modelo-card:hover .modelo-overlay { opacity: 1; }
+.modelo-overlay span {
+  font-size: 0.8rem;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+/* Lightbox */
+.lightbox {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.95);
+  z-index: 250;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.lightbox.show { display: flex; }
+.lightbox img {
+  max-width: 90%;
+  max-height: 90vh;
+  object-fit: contain;
+}
+
+/* Admin modelos */
+.admin-modelos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.admin-modelo-item {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid var(--dark-border);
+}
+.admin-modelo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.admin-modelo-item .admin-modelo-delete {
+  position: absolute;
+  top: 4px; right: 4px;
+  background: var(--danger);
+  border: none;
+  color: #fff;
+  width: 24px; height: 24px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Multiple service selection */
+.service-option .service-check {
+  width: 22px; height: 22px;
+  border: 2px solid var(--dark-border);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+.service-option.selected .service-check {
+  border-color: var(--gold);
+  background: var(--gold);
+  color: var(--dark);
+}
+.service-option.selected::after { content: none; }
+
+.selected-total {
+  text-align: right;
+  margin-top: 1rem;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  color: var(--gold);
+  letter-spacing: 1px;
 }
 </style>
 </head>
@@ -962,6 +1077,7 @@ async function saveConfigToAPI(senha) {
   <div class="logo" id="navLogo"></div>
   <div class="nav-links">
     <a href="#servicos">Serviços</a>
+    <a href="#modelos">Modelos</a>
     <a href="#agendar">Agendar</a>
     <a href="#contato">Contato</a>
   </div>
@@ -970,6 +1086,7 @@ async function saveConfigToAPI(senha) {
 
 <div class="mobile-menu" id="mobileMenu">
   <a href="#servicos" onclick="toggleMobileMenu()">Serviços</a>
+  <a href="#modelos" onclick="toggleMobileMenu()">Modelos</a>
   <a href="#agendar" onclick="toggleMobileMenu()">Agendar</a>
   <a href="#contato" onclick="toggleMobileMenu()">Contato</a>
 </div>
@@ -993,6 +1110,15 @@ async function saveConfigToAPI(senha) {
   <h2 class="section-title">Nossos Serviços</h2>
   <div class="section-divider"></div>
   <div class="services-grid" id="servicesList"></div>
+</section>
+
+<section id="modelos" class="reveal">
+  <div class="section-label">Nosso trabalho</div>
+  <h2 class="section-title">Modelos</h2>
+  <div class="section-divider"></div>
+  <div class="modelos-grid" id="modelosGrid">
+    <p style="color:var(--text-muted);text-align:center;">Nenhuma foto adicionada ainda. Acesse o painel admin para adicionar.</p>
+  </div>
 </section>
 
 <section id="agendar" class="reveal">
@@ -1084,6 +1210,11 @@ async function saveConfigToAPI(senha) {
   <span class="login-error" id="loginError">Senha incorreta</span>
 </div>
 
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightboxImg" src="" alt="">
+</div>
+
 <a class="whatsapp-float" id="whatsappFloat" target="_blank" title="Fale pelo WhatsApp">
   <i class="fab fa-whatsapp"></i>
 </a>
@@ -1115,6 +1246,7 @@ async function saveConfigToAPI(senha) {
       <button class="settings-tab" onclick="switchSettingsTab('contato',this)">Contato</button>
       <button class="settings-tab" onclick="switchSettingsTab('servicos',this)">Serviços</button>
       <button class="settings-tab" onclick="switchSettingsTab('horarios',this)">Horários</button>
+      <button class="settings-tab" onclick="switchSettingsTab('modelos',this)">Modelos</button>
       <button class="settings-tab" onclick="switchSettingsTab('seguranca',this)">Segurança</button>
     </div>
 
@@ -1227,6 +1359,26 @@ async function saveConfigToAPI(senha) {
       </div>
     </div>
 
+    <!-- Tab: Modelos / Portfólio -->
+    <div class="settings-tab-content" id="tab-modelos">
+      <div class="settings-group">
+        <div class="settings-group-title">Galeria de Modelos</div>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;">Adicione fotos dos cortes e serviços realizados. Essas imagens aparecem na seção "Modelos" do site.</p>
+        <div class="admin-modelos-grid" id="settingsModelosGrid"></div>
+        <div class="settings-field">
+          <label>Adicionar foto (cole a URL da imagem)</label>
+          <input type="url" id="newModeloUrl" placeholder="https://exemplo.com/foto.jpg">
+        </div>
+        <div class="settings-field">
+          <label>Descrição (opcional)</label>
+          <input type="text" id="newModeloDesc" placeholder="Ex: Corte degradê">
+        </div>
+        <button class="settings-add-btn" onclick="addModelo()">
+          <i class="fas fa-plus"></i> Adicionar Foto
+        </button>
+      </div>
+    </div>
+
     <!-- Tab: Segurança -->
     <div class="settings-tab-content" id="tab-seguranca">
       <div class="settings-group">
@@ -1255,7 +1407,7 @@ async function saveConfigToAPI(senha) {
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
 let state = {
-  selectedService: null,
+  selectedServices: [],
   selectedDate: null,
   selectedTime: null,
   currentMonth: new Date().getMonth(),
@@ -1267,6 +1419,7 @@ let state = {
 async function init() {
   await loadConfigFromAPI();
   await syncBookings();
+  await loadModelosFromAPI();
   document.getElementById('pageTitle').textContent = CONFIG.nomeBarbearia;
   document.getElementById('navLogo').textContent = CONFIG.nomeBarbearia.toUpperCase();
   document.getElementById('heroBadge').textContent = CONFIG.nomeBarbeiro;
@@ -1288,11 +1441,15 @@ async function init() {
     sl.innerHTML += `<div class="service-item"><div><div class="service-name">${s.nome}</div><div class="service-duration"><i class="far fa-clock"></i> ${s.duracao}</div></div><div class="service-price">R$ ${s.preco}</div></div>`;
   });
 
-  // Service options for booking
+  // Service options for booking (multiple selection)
   const so = document.getElementById('serviceOptions');
   CONFIG.servicos.forEach((s, i) => {
-    so.innerHTML += `<div class="service-option" data-index="${i}" onclick="selectService(${i})"><div><strong>${s.nome}</strong><br><small style="color:var(--text-muted)">${s.duracao}</small></div><span style="font-family:'Bebas Neue';font-size:1.3rem;color:var(--gold)">R$ ${s.preco}</span></div>`;
+    so.innerHTML += `<div class="service-option" data-index="${i}" onclick="selectService(${i})"><div class="service-check"><i class="fas fa-check" style="font-size:0.7rem;"></i></div><div style="flex:1;margin-left:0.8rem;"><strong>${s.nome}</strong><br><small style="color:var(--text-muted)">${s.duracao}</small></div><span style="font-family:'Bebas Neue';font-size:1.3rem;color:var(--gold)">R$ ${s.preco}</span></div>`;
   });
+  so.innerHTML += '<div class="selected-total" id="selectedTotal"></div>';
+
+  // Modelos / Portfólio
+  renderModelos();
 
   // Contact
   const cg = document.getElementById('contactGrid');
@@ -1341,8 +1498,8 @@ function showStep(n) {
 }
 
 function nextStep(n) {
-  if (n === 2 && state.selectedService === null) {
-    alert('Por favor, escolha um serviço.');
+  if (n === 2 && state.selectedServices.length === 0) {
+    alert('Por favor, escolha pelo menos um serviço.');
     return;
   }
   if (n === 3) {
@@ -1355,11 +1512,32 @@ function nextStep(n) {
 
 function prevStep(n) { showStep(n); }
 
-// --- Service Selection ---
+// --- Service Selection (multiple) ---
 function selectService(i) {
-  state.selectedService = i;
-  document.querySelectorAll('.service-option').forEach(el => el.classList.remove('selected'));
-  document.querySelector(`.service-option[data-index="${i}"]`).classList.add('selected');
+  const idx = state.selectedServices.indexOf(i);
+  if (idx >= 0) {
+    state.selectedServices.splice(idx, 1);
+  } else {
+    state.selectedServices.push(i);
+  }
+  document.querySelectorAll('.service-option').forEach((el, index) => {
+    if (state.selectedServices.includes(index)) {
+      el.classList.add('selected');
+    } else {
+      el.classList.remove('selected');
+    }
+  });
+  updateSelectedTotal();
+}
+
+function updateSelectedTotal() {
+  const totalEl = document.getElementById('selectedTotal');
+  if (state.selectedServices.length === 0) {
+    totalEl.textContent = '';
+    return;
+  }
+  const total = state.selectedServices.reduce((sum, i) => sum + CONFIG.servicos[i].preco, 0);
+  totalEl.textContent = `${state.selectedServices.length} serviço(s) — Total: R$ ${total}`;
 }
 
 // --- Calendar ---
@@ -1468,10 +1646,12 @@ function selectTime(t) {
 
 // --- Summary ---
 function buildSummary() {
-  const s = CONFIG.servicos[state.selectedService];
+  const services = state.selectedServices.map(i => CONFIG.servicos[i]);
+  const total = services.reduce((sum, s) => sum + s.preco, 0);
+  const names = services.map(s => s.nome).join(', ');
   const html = `
-    <div class="summary-row"><span>Serviço</span><span>${s.nome}</span></div>
-    <div class="summary-row"><span>Preço</span><span style="color:var(--gold);font-weight:700;">R$ ${s.preco}</span></div>
+    <div class="summary-row"><span>Serviço(s)</span><span>${names}</span></div>
+    <div class="summary-row"><span>Total</span><span style="color:var(--gold);font-weight:700;">R$ ${total}</span></div>
     <div class="summary-row"><span>Data</span><span>${formatDateBR(state.selectedDate)}</span></div>
     <div class="summary-row"><span>Horário</span><span>${state.selectedTime}</span></div>
   `;
@@ -1485,10 +1665,13 @@ async function confirmBooking() {
   if (!name) { alert('Por favor, digite seu nome.'); return; }
   if (!phone) { alert('Por favor, digite seu telefone.'); return; }
 
-  const s = CONFIG.servicos[state.selectedService];
+  const services = state.selectedServices.map(i => CONFIG.servicos[i]);
+  const total = services.reduce((sum, s) => sum + s.preco, 0);
+  const names = services.map(s => s.nome).join(', ');
+
   const booking = {
-    servico: s.nome,
-    preco: s.preco,
+    servico: names,
+    preco: total,
     data: formatDate(state.selectedDate),
     dataBR: formatDateBR(state.selectedDate),
     horario: state.selectedTime,
@@ -1504,21 +1687,20 @@ async function confirmBooking() {
 
   document.getElementById('confirmationMsg').textContent = `${name}, seu horário está reservado!`;
   document.getElementById('confirmSummary').innerHTML = `
-    <div class="summary-row"><span>Serviço</span><span>${booking.servico}</span></div>
+    <div class="summary-row"><span>Serviço(s)</span><span>${booking.servico}</span></div>
     <div class="summary-row"><span>Data</span><span>${booking.dataBR}</span></div>
     <div class="summary-row"><span>Horário</span><span>${booking.horario}</span></div>
-    <div class="summary-row"><span>Valor</span><span style="color:var(--gold);font-weight:700;">R$ ${booking.preco}</span></div>
+    <div class="summary-row"><span>Total</span><span style="color:var(--gold);font-weight:700;">R$ ${booking.preco}</span></div>
   `;
 
-  // WhatsApp confirmation link
-  const msg = encodeURIComponent(`Olá! Gostaria de confirmar meu agendamento:\n\n📋 *${booking.servico}*\n📅 ${booking.dataBR}\n🕐 ${booking.horario}\n👤 ${booking.nomeCliente}\n\nObrigado!`);
+  const msg = encodeURIComponent(`Olá! Gostaria de confirmar meu agendamento:\n\n📋 *${booking.servico}*\n📅 ${booking.dataBR}\n🕐 ${booking.horario}\n👤 ${booking.nomeCliente}\n💰 R$ ${booking.preco}\n\nObrigado!`);
   document.getElementById('whatsappConfirm').href = `https://wa.me/${CONFIG.whatsapp}?text=${msg}`;
 
   showStep(4);
 }
 
 function resetBooking() {
-  state.selectedService = null;
+  state.selectedServices = [];
   state.selectedDate = null;
   state.selectedTime = null;
   document.getElementById('clientName').value = '';
@@ -1793,6 +1975,9 @@ function populateSettingsFields() {
 
   // Serviços
   renderSettingsServices();
+
+  // Modelos
+  renderSettingsModelos();
 }
 
 function renderSettingsServices() {
@@ -1944,6 +2129,123 @@ function rerenderSite() {
 
   // Reset booking state
   resetBooking();
+  renderModelos();
+}
+
+// ==========================================
+// MODELOS / PORTFÓLIO
+// ==========================================
+
+function getModelos() {
+  try { return JSON.parse(localStorage.getItem('barbershop_modelos') || '[]'); }
+  catch { return []; }
+}
+
+function saveModelos(m) {
+  localStorage.setItem('barbershop_modelos', JSON.stringify(m));
+}
+
+async function syncModelos() {
+  try {
+    const res = await fetch(API_URL + '/api/modelos');
+    if (res.ok) {
+      const data = await res.json();
+      saveModelos(data);
+      return data;
+    }
+  } catch(e) {}
+  return getModelos();
+}
+
+function renderModelos() {
+  const modelos = getModelos();
+  const grid = document.getElementById('modelosGrid');
+  if (modelos.length === 0) {
+    grid.innerHTML = '<p style="color:var(--text-muted);text-align:center;grid-column:1/-1;">Nenhuma foto adicionada ainda.</p>';
+    return;
+  }
+  grid.innerHTML = modelos.map(m => `
+    <div class="modelo-card" onclick="openLightbox('${m.url}')">
+      <img src="${m.url}" alt="${m.descricao || 'Modelo'}" loading="lazy">
+      <div class="modelo-overlay">
+        <span>${m.descricao || ''}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSettingsModelos() {
+  const modelos = getModelos();
+  const grid = document.getElementById('settingsModelosGrid');
+  if (modelos.length === 0) {
+    grid.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">Nenhuma foto adicionada.</p>';
+    return;
+  }
+  grid.innerHTML = modelos.map((m, i) => `
+    <div class="admin-modelo-item">
+      <img src="${m.url}" alt="${m.descricao || ''}">
+      <button class="admin-modelo-delete" onclick="removeModelo(${i})"><i class="fas fa-times"></i></button>
+    </div>
+  `).join('');
+}
+
+function addModelo() {
+  const url = document.getElementById('newModeloUrl').value.trim();
+  const desc = document.getElementById('newModeloDesc').value.trim();
+  if (!url) { alert('Cole a URL da imagem.'); return; }
+  
+  const modelos = getModelos();
+  modelos.push({ url, descricao: desc, id: Date.now() });
+  saveModelos(modelos);
+  
+  // Save to API
+  saveModelosToAPI(modelos);
+  
+  document.getElementById('newModeloUrl').value = '';
+  document.getElementById('newModeloDesc').value = '';
+  renderSettingsModelos();
+  renderModelos();
+}
+
+function removeModelo(i) {
+  const modelos = getModelos();
+  modelos.splice(i, 1);
+  saveModelos(modelos);
+  saveModelosToAPI(modelos);
+  renderSettingsModelos();
+  renderModelos();
+}
+
+async function saveModelosToAPI(modelos) {
+  try {
+    await fetch(API_URL + '/api/modelos', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ modelos, senha: CONFIG.senhaAdmin })
+    });
+  } catch(e) {}
+}
+
+async function loadModelosFromAPI() {
+  try {
+    const res = await fetch(API_URL + '/api/modelos');
+    if (res.ok) {
+      const data = await res.json();
+      saveModelos(data);
+    }
+  } catch(e) {}
+}
+
+// Lightbox
+function openLightbox(url) {
+  document.getElementById('lightboxImg').src = url;
+  document.getElementById('lightbox').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('show');
+  document.body.style.overflow = '';
 }
 </script>
 </body>
