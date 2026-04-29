@@ -1365,8 +1365,13 @@ async function saveConfigToAPI(senha) {
         <div class="settings-group-title">Galeria de Modelos</div>
         <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;">Adicione fotos dos cortes e serviços realizados. Essas imagens aparecem na seção "Modelos" do site.</p>
         <div class="admin-modelos-grid" id="settingsModelosGrid"></div>
+        
+        <div class="settings-field" style="margin-top:1rem;">
+          <label>Enviar foto do celular/computador</label>
+          <input type="file" id="modeloFileInput" accept="image/*" style="width:100%;padding:0.8rem;background:var(--dark-card);border:1px solid var(--dark-border);color:var(--text);cursor:pointer;">
+        </div>
         <div class="settings-field">
-          <label>Adicionar foto (cole a URL da imagem)</label>
+          <label>Ou cole a URL da imagem</label>
           <input type="url" id="newModeloUrl" placeholder="https://exemplo.com/foto.jpg">
         </div>
         <div class="settings-field">
@@ -2189,22 +2194,66 @@ function renderSettingsModelos() {
   `).join('');
 }
 
-function addModelo() {
+async function addModelo() {
+  const fileInput = document.getElementById('modeloFileInput');
   const url = document.getElementById('newModeloUrl').value.trim();
   const desc = document.getElementById('newModeloDesc').value.trim();
-  if (!url) { alert('Cole a URL da imagem.'); return; }
+  const file = fileInput.files[0];
+
+  if (!file && !url) { 
+    alert('Escolha uma foto do seu dispositivo ou cole uma URL.'); 
+    return; 
+  }
+
+  let modelo = null;
+
+  if (file) {
+    // Upload file to backend
+    const formData = new FormData();
+    formData.append('imagem', file);
+    formData.append('descricao', desc);
+    
+    try {
+      const res = await fetch(API_URL + '/api/modelos/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (res.ok) {
+        modelo = await res.json();
+      } else {
+        alert('Erro ao enviar imagem. Tente novamente.');
+        return;
+      }
+    } catch(e) {
+      alert('Erro de conexão. Verifique sua internet.');
+      return;
+    }
+  } else {
+    // URL-based
+    try {
+      const modelos = getModelos();
+      modelos.push({ url, descricao: desc, id: Date.now() });
+      saveModelos(modelos);
+      await saveModelosToAPI(modelos);
+    } catch(e) {}
+  }
   
-  const modelos = getModelos();
-  modelos.push({ url, descricao: desc, id: Date.now() });
-  saveModelos(modelos);
+  // Sync from API
+  await loadModelosFromAPI();
   
-  // Save to API
-  saveModelosToAPI(modelos);
-  
+  // Clear inputs
   document.getElementById('newModeloUrl').value = '';
   document.getElementById('newModeloDesc').value = '';
+  fileInput.value = '';
+  
   renderSettingsModelos();
   renderModelos();
+  
+  // Toast feedback
+  const toast = document.getElementById('settingsToast');
+  toast.textContent = 'Foto adicionada!';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
 }
 
 function removeModelo(i) {
