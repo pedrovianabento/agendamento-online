@@ -884,6 +884,11 @@ footer {
 <!-- CONFIGURAÇÃO DA BARBEARIA - EDITE AQUI -->
 <!-- ============================================ -->
 <script>
+// ============================================
+// API BACKEND - Configurações sincronizadas
+// ============================================
+const API_URL = 'https://agendamento-backend-api.onrender.com';
+
 const DEFAULT_CONFIG = {
   nomeBarbearia: "Barbearia Premium",
   nomeBarbeiro: "João Silva",
@@ -911,16 +916,46 @@ const DEFAULT_CONFIG = {
   senhaAdmin: "1234",
 };
 
-// Load saved config from localStorage, fallback to defaults
-function loadConfig() {
+let CONFIG = { ...DEFAULT_CONFIG };
+
+// Load config from API (synced across all devices)
+async function loadConfigFromAPI() {
   try {
-    const saved = JSON.parse(localStorage.getItem('barbershop_config'));
-    if (saved) return { ...DEFAULT_CONFIG, ...saved };
-  } catch(e) {}
-  return { ...DEFAULT_CONFIG };
+    const res = await fetch(API_URL + '/api/config');
+    if (res.ok) {
+      const data = await res.json();
+      CONFIG = { ...DEFAULT_CONFIG, ...data };
+      // Cache locally for offline
+      localStorage.setItem('barbershop_config', JSON.stringify(CONFIG));
+    }
+  } catch(e) {
+    // Fallback to localStorage cache if API is down
+    try {
+      const saved = JSON.parse(localStorage.getItem('barbershop_config'));
+      if (saved) CONFIG = { ...DEFAULT_CONFIG, ...saved };
+    } catch(e2) {}
+  }
 }
 
-const CONFIG = loadConfig();
+// Save config to API
+async function saveConfigToAPI(senha) {
+  try {
+    const res = await fetch(API_URL + '/api/config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...CONFIG, senha })
+    });
+    if (!res.ok) throw new Error('Falha ao salvar');
+    const data = await res.json();
+    CONFIG = { ...DEFAULT_CONFIG, ...data };
+    localStorage.setItem('barbershop_config', JSON.stringify(CONFIG));
+    return true;
+  } catch(e) {
+    // Fallback: save locally
+    localStorage.setItem('barbershop_config', JSON.stringify(CONFIG));
+    return false;
+  }
+}
 </script>
 
 <nav>
@@ -1229,7 +1264,9 @@ let state = {
 };
 
 // --- Init ---
-function init() {
+async function init() {
+  await loadConfigFromAPI();
+  await syncBookings();
   document.getElementById('pageTitle').textContent = CONFIG.nomeBarbearia;
   document.getElementById('navLogo').textContent = CONFIG.nomeBarbearia.toUpperCase();
   document.getElementById('heroBadge').textContent = CONFIG.nomeBarbeiro;
@@ -1376,16 +1413,22 @@ function selectDate(y, m, d) {
 }
 
 // --- Time Slots ---
-function renderTimeSlots() {
+async function renderTimeSlots() {
   if (!state.selectedDate) return;
 
   const container = document.getElementById('timeSlotsContainer');
   const slotsEl = document.getElementById('timeSlots');
   container.style.display = 'block';
 
-  const bookings = getBookings();
   const dateStr = formatDate(state.selectedDate);
-  const bookedTimes = bookings.filter(b => b.date === dateStr).map(b => b.time);
+  // Fetch bookings for this date from API
+  const dayBookings = await getBookingsFromAPI(dateStr);
+  // Update local cache
+  const allLocal = getBookings();
+  const otherDays = allLocal.filter(b => (b.data||b.date) !== dateStr);
+  localStorage.setItem('barbershop_bookings', JSON.stringify([...otherDays, ...dayBookings]));
+  
+  const bookedTimes = dayBookings.map(b => b.horario || b.time);
 
   let html = '';
   for (let h = CONFIG.horaInicio; h < CONFIG.horaFim; h++) {
@@ -1436,7 +1479,7 @@ function buildSummary() {
 }
 
 // --- Confirm ---
-function confirmBooking() {
+async function confirmBooking() {
   const name = document.getElementById('clientName').value.trim();
   const phone = document.getElementById('clientPhone').value.trim();
   if (!name) { alert('Por favor, digite seu nome.'); return; }
@@ -1444,31 +1487,31 @@ function confirmBooking() {
 
   const s = CONFIG.servicos[state.selectedService];
   const booking = {
-    id: Date.now(),
-    service: s.nome,
-    price: s.preco,
-    date: formatDate(state.selectedDate),
-    dateBR: formatDateBR(state.selectedDate),
-    time: state.selectedTime,
-    clientName: name,
-    clientPhone: phone,
-    createdAt: new Date().toISOString(),
+    servico: s.nome,
+    preco: s.preco,
+    data: formatDate(state.selectedDate),
+    dataBR: formatDateBR(state.selectedDate),
+    horario: state.selectedTime,
+    nomeCliente: name,
+    telefoneCliente: phone,
   };
 
-  const bookings = getBookings();
-  bookings.push(booking);
-  saveBookings(bookings);
+  const saved = await createBookingAPI(booking);
+  if (!saved) {
+    renderTimeSlots();
+    return;
+  }
 
   document.getElementById('confirmationMsg').textContent = `${name}, seu horário está reservado!`;
   document.getElementById('confirmSummary').innerHTML = `
-    <div class="summary-row"><span>Serviço</span><span>${booking.service}</span></div>
-    <div class="summary-row"><span>Data</span><span>${booking.dateBR}</span></div>
-    <div class="summary-row"><span>Horário</span><span>${booking.time}</span></div>
-    <div class="summary-row"><span>Valor</span><span style="color:var(--gold);font-weight:700;">R$ ${booking.price}</span></div>
+    <div class="summary-row"><span>Serviço</span><span>${booking.servico}</span></div>
+    <div class="summary-row"><span>Data</span><span>${booking.dataBR}</span></div>
+    <div class="summary-row"><span>Horário</span><span>${booking.horario}</span></div>
+    <div class="summary-row"><span>Valor</span><span style="color:var(--gold);font-weight:700;">R$ ${booking.preco}</span></div>
   `;
 
   // WhatsApp confirmation link
-  const msg = encodeURIComponent(`Olá! Gostaria de confirmar meu agendamento:\n\n📋 *${booking.service}*\n📅 ${booking.dateBR}\n🕐 ${booking.time}\n👤 ${booking.clientName}\n\nObrigado!`);
+  const msg = encodeURIComponent(`Olá! Gostaria de confirmar meu agendamento:\n\n📋 *${booking.servico}*\n📅 ${booking.dataBR}\n🕐 ${booking.horario}\n👤 ${booking.nomeCliente}\n\nObrigado!`);
   document.getElementById('whatsappConfirm').href = `https://wa.me/${CONFIG.whatsapp}?text=${msg}`;
 
   showStep(4);
@@ -1486,12 +1529,77 @@ function resetBooking() {
   showStep(1);
 }
 
-// --- Storage ---
-function getBookings() {
+// --- Storage (API-based) ---
+async function getBookingsFromAPI(date) {
+  try {
+    const url = date ? `${API_URL}/api/bookings/date/${date}` : `${API_URL}/api/bookings`;
+    const res = await fetch(url);
+    if (res.ok) return await res.json();
+  } catch(e) {}
+  return getBookingsLocal();
+}
+
+function getBookingsLocal() {
   try { return JSON.parse(localStorage.getItem('barbershop_bookings') || '[]'); }
   catch { return []; }
 }
+
+function getBookings() {
+  // Sync version for calendar rendering (uses cached data)
+  return JSON.parse(localStorage.getItem('barbershop_bookings') || '[]');
+}
+
+async function createBookingAPI(booking) {
+  try {
+    const res = await fetch(API_URL + '/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(booking)
+    });
+    if (res.ok) {
+      const saved = await res.json();
+      // Update local cache
+      const local = getBookings();
+      local.push(saved);
+      localStorage.setItem('barbershop_bookings', JSON.stringify(local));
+      return saved;
+    }
+    if (res.status === 409) {
+      alert('Este horário já foi reservado por outra pessoa!');
+      return null;
+    }
+  } catch(e) {}
+  // Fallback local
+  const local = getBookings();
+  local.push({ ...booking, id: Date.now() });
+  localStorage.setItem('barbershop_bookings', JSON.stringify(local));
+  return booking;
+}
+
+async function deleteBookingAPI(id) {
+  try {
+    await fetch(`${API_URL}/api/bookings/${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senha: CONFIG.senhaAdmin })
+    });
+  } catch(e) {}
+  const local = getBookings().filter(b => b.id !== id);
+  localStorage.setItem('barbershop_bookings', JSON.stringify(local));
+}
+
 function saveBookings(b) { localStorage.setItem('barbershop_bookings', JSON.stringify(b)); }
+
+// Load bookings from API to local cache
+async function syncBookings() {
+  try {
+    const res = await fetch(API_URL + '/api/bookings');
+    if (res.ok) {
+      const data = await res.json();
+      localStorage.setItem('barbershop_bookings', JSON.stringify(data));
+    }
+  } catch(e) {}
+}
 
 // --- Date Helpers ---
 function formatDate(d) {
@@ -1515,7 +1623,8 @@ function setupAdminTrigger() {
   });
 }
 
-function openAdmin() {
+async function openAdmin() {
+  await syncBookings();
   renderAdmin('all');
   document.getElementById('adminPanel').classList.add('show');
   document.getElementById('adminLoginBar').style.display = 'none';
@@ -1556,11 +1665,11 @@ function renderAdmin(filter) {
   `;
 
   let filtered = bookings;
-  if (filter === 'today') filtered = bookings.filter(b => b.date === today);
-  else if (filter === 'tomorrow') filtered = bookings.filter(b => b.date === tomorrow);
-  else if (filter === 'upcoming') filtered = bookings.filter(b => b.date >= today);
+  if (filter === 'today') filtered = bookings.filter(b => (b.data||b.date) === today);
+  else if (filter === 'tomorrow') filtered = bookings.filter(b => (b.data||b.date) === tomorrow);
+  else if (filter === 'upcoming') filtered = bookings.filter(b => (b.data||b.date) >= today);
 
-  filtered.sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time));
+  filtered.sort((a,b) => ((a.data||a.date) + (a.horario||a.time)).localeCompare((b.data||b.date) + (b.horario||b.time)));
 
   const el = document.getElementById('adminBookings');
   if (filtered.length === 0) {
@@ -1571,18 +1680,17 @@ function renderAdmin(filter) {
   el.innerHTML = filtered.map(b => `
     <div class="admin-booking">
       <div class="admin-booking-info">
-        <strong>${b.clientName}</strong> — ${b.service}
-        <small><i class="far fa-calendar"></i> ${b.dateBR} às ${b.time} &nbsp;|&nbsp; <i class="fas fa-phone"></i> ${b.clientPhone} &nbsp;|&nbsp; R$ ${b.price}</small>
+        <strong>${b.nomeCliente || b.clientName}</strong> — ${b.servico || b.service}
+        <small><i class="far fa-calendar"></i> ${b.dataBR || b.dateBR} às ${b.horario || b.time} &nbsp;|&nbsp; <i class="fas fa-phone"></i> ${b.telefoneCliente || b.clientPhone} &nbsp;|&nbsp; R$ ${b.preco || b.price}</small>
       </div>
       <button class="admin-delete" onclick="deleteBooking(${b.id})"><i class="fas fa-trash"></i> Cancelar</button>
     </div>
   `).join('');
 }
 
-function deleteBooking(id) {
+async function deleteBooking(id) {
   if (!confirm('Cancelar este agendamento?')) return;
-  const bookings = getBookings().filter(b => b.id !== id);
-  saveBookings(bookings);
+  await deleteBookingAPI(id);
   renderAdmin('all');
 }
 
@@ -1741,7 +1849,7 @@ function collectServicesFromFields() {
   return services;
 }
 
-function saveSettings() {
+async function saveSettings() {
   // Collect all values
   CONFIG.nomeBarbearia = document.getElementById('set_nomeBarbearia').value.trim() || CONFIG.nomeBarbearia;
   CONFIG.nomeBarbeiro = document.getElementById('set_nomeBarbeiro').value.trim() || CONFIG.nomeBarbeiro;
@@ -1773,14 +1881,16 @@ function saveSettings() {
   // Services
   CONFIG.servicos = collectServicesFromFields();
 
-  // Save to localStorage
-  localStorage.setItem('barbershop_config', JSON.stringify(CONFIG));
+  // Save to API (synced across all devices)
+  const senha = CONFIG.senhaAdmin;
+  const saved = await saveConfigToAPI(senha);
 
   // Re-render the entire site
   rerenderSite();
 
   // Toast
   const toast = document.getElementById('settingsToast');
+  toast.textContent = saved ? 'Configurações salvas e sincronizadas!' : 'Salvo localmente (API offline)';
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 2500);
 
