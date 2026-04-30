@@ -938,6 +938,66 @@ footer {
   object-fit: contain;
 }
 
+/* Popup confirmação */
+.popup-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.popup-overlay.show { display: flex; }
+.popup-box {
+  background: var(--dark-card);
+  border: 1px solid var(--gold);
+  padding: 2.5rem;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  animation: fadeUp 0.4s;
+}
+.popup-box .popup-icon {
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  background: rgba(201,168,76,0.15);
+  border: 2px solid var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.5rem;
+  font-size: 2rem;
+  color: var(--gold);
+}
+.popup-box h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+}
+.popup-box p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+.popup-summary {
+  text-align: left;
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+.popup-summary .summary-row {
+  display: flex; justify-content: space-between;
+  padding: 0.4rem 0;
+  font-size: 0.85rem;
+}
+.popup-summary .summary-row span:first-child { color: var(--text-muted); }
+.popup-actions {
+  display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center;
+}
+.popup-actions .btn { flex: 1; min-width: 140px; justify-content: center; }
+
 /* Admin modelos */
 .admin-modelos-grid {
   display: grid;
@@ -1208,6 +1268,24 @@ async function saveConfigToAPI(senha) {
   <input type="password" id="adminPwdInput" placeholder="Senha do barbeiro" onkeydown="if(event.key==='Enter')loginAdmin()">
   <button onclick="loginAdmin()"><i class="fas fa-sign-in-alt"></i> Entrar</button>
   <span class="login-error" id="loginError">Senha incorreta</span>
+</div>
+
+<!-- Popup Confirmação -->
+<div class="popup-overlay" id="bookingPopup">
+  <div class="popup-box">
+    <div class="popup-icon"><i class="fas fa-check"></i></div>
+    <h3>AGENDAMENTO CONFIRMADO!</h3>
+    <p id="popupMsg">Seu horário foi reservado com sucesso.</p>
+    <div class="popup-summary" id="popupSummary"></div>
+    <div class="popup-actions">
+      <a id="popupWhatsapp" class="btn" target="_blank" style="background:var(--success);color:#fff;text-decoration:none;">
+        <i class="fab fa-whatsapp"></i> WhatsApp
+      </a>
+      <button class="btn btn-outline" onclick="closeBookingPopup()">
+        <i class="fas fa-times"></i> Fechar
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- Lightbox -->
@@ -1700,6 +1778,18 @@ async function confirmBooking() {
 
   const msg = encodeURIComponent(`Olá! Gostaria de confirmar meu agendamento:\n\n📋 *${booking.servico}*\n📅 ${booking.dataBR}\n🕐 ${booking.horario}\n👤 ${booking.nomeCliente}\n💰 R$ ${booking.preco}\n\nObrigado!`);
   document.getElementById('whatsappConfirm').href = `https://wa.me/${CONFIG.whatsapp}?text=${msg}`;
+
+  // Show confirmation popup
+  document.getElementById('popupMsg').textContent = `${name}, seu horário foi reservado com sucesso!`;
+  document.getElementById('popupSummary').innerHTML = `
+    <div class="summary-row"><span>Serviço(s)</span><span>${booking.servico}</span></div>
+    <div class="summary-row"><span>Data</span><span>${booking.dataBR}</span></div>
+    <div class="summary-row"><span>Horário</span><span>${booking.horario}</span></div>
+    <div class="summary-row"><span>Total</span><span style="color:var(--gold);font-weight:700;">R$ ${booking.preco}</span></div>
+  `;
+  document.getElementById('popupWhatsapp').href = `https://wa.me/${CONFIG.whatsapp}?text=${msg}`;
+  document.getElementById('bookingPopup').classList.add('show');
+  document.body.style.overflow = 'hidden';
 
   showStep(4);
 }
@@ -2294,6 +2384,12 @@ function openLightbox(url) {
 
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// Booking popup
+function closeBookingPopup() {
+  document.getElementById('bookingPopup').classList.remove('show');
   document.body.style.overflow = '';
 }
 </script>
